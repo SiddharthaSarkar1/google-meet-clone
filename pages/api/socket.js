@@ -11,6 +11,11 @@ const SocketHandler = (req, res) => {
         //Whenever a browser establishes a websocket connection at that time tis particular part would run
         io.on('connection', (socket) => {
             console.log('Server is connected!');
+            socket.on('joined-room', (roomID, userId) => {
+                console.log(`A new user with ${userId} joined room ${roomID}`);
+                socket.join(roomID);
+                socket.broadcast.to(roomID).emit('user-connected', userId);
+            });
         })
     }
     res.end();

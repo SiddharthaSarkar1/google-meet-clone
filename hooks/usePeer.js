@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 
 const usePeer = () => {
   const socket = useSocket();
-  const roomID = useRouter().query.roomID;
+  const roomID = useRouter().query.roomId;
   const [peer, setPeer] = useState(null);
   const [myId, setMyId] = useState("");
   const isPeerSet = useRef(false);

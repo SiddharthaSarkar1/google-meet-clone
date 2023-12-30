@@ -9,6 +9,7 @@ import { cloneDeep } from "lodash";
 
 import styles from "@/styles/room.module.css";
 import Bottom from "@/components/Bottom";
+import CopySection from "@/components/CopySection";
 
 const Room = () => {
   const socket = useSocket();
@@ -158,6 +159,7 @@ const Room = () => {
           );
         })}
       </div>
+      <CopySection roomId={roomId} />
       <Bottom
         muted={playerHighlighted?.muted}
         playing={playerHighlighted?.playing}

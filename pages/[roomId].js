@@ -4,16 +4,26 @@ import useMediaStream from "@/hooks/useMediaStream";
 import usePeer from "@/hooks/usePeer";
 import usePlayer from "@/hooks/usePlayer";
 import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { cloneDeep } from "lodash";
 
-import styles from '@/styles/room.module.css';
+import styles from "@/styles/room.module.css";
+import Bottom from "@/components/Bottom";
 
 const Room = () => {
   const socket = useSocket();
+  const roomId = useRouter().query.roomId;
   const { peer, myId } = usePeer();
   const { stream } = useMediaStream();
 
-  const { players, setPlayers, playerHighlighted, nonHighlightedPlayers } =
-    usePlayer(myId);
+  const {
+    players,
+    setPlayers,
+    playerHighlighted,
+    nonHighlightedPlayers,
+    toggleAudio,
+    toggleVideo,
+  } = usePlayer(myId, roomId);
 
   useEffect(() => {
     if (!socket || !peer || !stream) return;
@@ -37,6 +47,36 @@ const Room = () => {
       socket.off("user-connected", handleUserConnected);
     };
   }, [socket, setPlayers, peer, stream]);
+
+  useEffect(() => {
+    //This use effect will deal with all the control panel stuff
+    if (!socket) return;
+    const handleToggleAudio = (userId) => {
+      console.log(`User with id ${userId} toggled audio.`);
+      setPlayers((prev) => {
+        const copy = cloneDeep(prev);
+        copy[userId].muted = !copy[userId].muted;
+        return { ...copy };
+      });
+    };
+
+    const handleToggleVideo = (userId) => {
+      console.log(`User with id ${userId} toggled video.`);
+      setPlayers((prev) => {
+        const copy = cloneDeep(prev);
+        copy[userId].playing = !copy[userId].playing;
+        return { ...copy };
+      });
+    };
+
+    socket.on("user-toggle-audio", handleToggleAudio);
+    socket.on("user-toggle-video", handleToggleVideo);
+
+    return () => {
+      socket.off("user-toggle-audio", handleToggleAudio);
+      socket.off("user-toggle-video", handleToggleVideo);
+    };
+  }, [setPlayers, socket]);
 
   useEffect(() => {
     if (!peer || !stream) return;
@@ -86,10 +126,22 @@ const Room = () => {
         {Object.keys(nonHighlightedPlayers).map((playerId) => {
           const { url, muted, playing } = nonHighlightedPlayers[playerId];
           return (
-            <Player key={playerId} url={url} muted={muted} playing={playing} isActive={false} />
+            <Player
+              key={playerId}
+              url={url}
+              muted={muted}
+              playing={playing}
+              isActive={false}
+            />
           );
         })}
       </div>
+      <Bottom
+        muted={playerHighlighted?.muted}
+        playing={playerHighlighted?.playing}
+        toggleAudio={toggleAudio}
+        toggleVideo={toggleVideo}
+      />
     </>
   );
 };

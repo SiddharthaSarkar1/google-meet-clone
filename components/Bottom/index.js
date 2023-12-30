@@ -4,7 +4,7 @@ import { Mic, Video, PhoneOff, MicOff, VideoOff } from "lucide-react";
 import styles from "@/components/Bottom/index.module.css";
 
 const Bottom = (props) => {
-  const { muted, playing, toggleAudio, toggleVideo } = props;
+  const { muted, playing, toggleAudio, toggleVideo, leaveRoom } = props;
 
   return (
     <div className={styles.bottomMenu}>
@@ -26,7 +26,7 @@ const Bottom = (props) => {
           onClick={toggleVideo}
         />
       )}
-      <PhoneOff className={styles.icon} size={55} />
+      <PhoneOff className={styles.icon} size={55} onClick={leaveRoom} />
     </div>
   );
 };

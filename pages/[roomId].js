@@ -3,7 +3,7 @@ import { useSocket } from "@/context/socket";
 import useMediaStream from "@/hooks/useMediaStream";
 import usePeer from "@/hooks/usePeer";
 import usePlayer from "@/hooks/usePlayer";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { cloneDeep } from "lodash";
 
@@ -23,7 +23,10 @@ const Room = () => {
     nonHighlightedPlayers,
     toggleAudio,
     toggleVideo,
-  } = usePlayer(myId, roomId);
+    leaveRoom,
+  } = usePlayer(myId, roomId, peer);
+
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     if (!socket || !peer || !stream) return;
@@ -39,6 +42,10 @@ const Room = () => {
             muted: false,
             playing: true,
           },
+        }));
+        setUsers((prev) => ({
+          ...prev,
+          [newUser]: call,
         }));
       });
     };
@@ -69,14 +76,24 @@ const Room = () => {
       });
     };
 
+    const handleUserLeave = (userId) => {
+      console.log(`User ${userId} is leaving the room.`);
+      users[userId]?.close();
+      const playersCopy = cloneDeep(players);
+      delete playersCopy[userId];
+      setPlayers(playersCopy);
+    }
+    
+
     socket.on("user-toggle-audio", handleToggleAudio);
     socket.on("user-toggle-video", handleToggleVideo);
+    socket.on("user-leave", handleUserLeave);
 
     return () => {
       socket.off("user-toggle-audio", handleToggleAudio);
       socket.off("user-toggle-video", handleToggleVideo);
     };
-  }, [setPlayers, socket]);
+  }, [setPlayers, socket, users]);
 
   useEffect(() => {
     if (!peer || !stream) return;
@@ -92,6 +109,11 @@ const Room = () => {
             muted: false,
             playing: true,
           },
+        }));
+
+        setUsers((prev) => ({
+          ...prev, 
+          [callerId]: call
         }));
       });
     });
@@ -141,6 +163,7 @@ const Room = () => {
         playing={playerHighlighted?.playing}
         toggleAudio={toggleAudio}
         toggleVideo={toggleVideo}
+        leaveRoom={leaveRoom}
       />
     </>
   );

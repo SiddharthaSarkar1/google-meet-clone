@@ -10,7 +10,8 @@
 
         &:hover,
         &:active {
-            background-color: theme("colors.buttonPrimary");
+            /* background-color: theme("colors.buttonPrimary"); */
+            @apply active:scale-95 transition text-sm bg-violet-600 shadow-md shadow-rose-300 hover:shadow-sm hover:shadow-rose-400 transition-all duration-300;
         }
     }
     
